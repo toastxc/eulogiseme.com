@@ -1,0 +1,120 @@
+footer p {
+    color: #333333;
+}
+
+div
+
+.holder {
+
+    background-color: #e6f4f0;
+}
+
+
+.icon {
+    max-width: 100px;
+    
+}
+.icon img {
+    max-width: 100%; 
+  height: auto; 
+border-radius: 50px;
+}
+.title-holder {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+   
+}
+
+p {
+    color: #666666;
+}
+h2 {
+    justify-content: center;
+    align-items: center;
+    color: #333333;
+}
+
+body {
+    background-color: #fefefe;
+}
+
+
+
+h3 {
+    color: #333333
+}
+
+a {
+    
+    
+}
+
+.BigButton {
+    background-color: #e6f4f0;
+    color: #666666;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.BigButton:hover {
+    color: black;
+    background-color: #d4f3ef;
+}
+
+
+
+.input-box-holder {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    
+}
+
+
+.input_duo {
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+label {
+    color: #666666;
+    width: auto;
+    margin-right: auto;
+    width: 100px;
+
+}
+
+input{
+    width: 500px;
+    border-radius: 4px;
+    outline: none;
+    border: none;
+    text-align: left;
+}
+
+input[type="submit"] {
+    background-color: #a4e8ca;
+    color: #666666;
+    width: 504px;
+}
+
+input[type="submit"]:hover {
+    background-color: #fefefe;
+    color: black;
+}
+
+
+.popup_success {
+    border-radius: 20px;
+    padding: 10px;
+    background-color: green;
+}
+.popup_error {
+    
+    border-radius: 20px;
+    padding: 10px;
+    background-color: red;
+}
+

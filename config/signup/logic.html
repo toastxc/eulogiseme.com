@@ -1,0 +1,55 @@
+<script>
+
+function submitForm() {
+    const form = document.getElementById('signup');
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(form);
+        const url = 'http://localhost:8000';
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+
+            const responseText = await response.text();
+
+            switch (responseText) {
+        case 'DuplicatedUser':
+        mkres(true, "This username is already registered, please check your emails")
+          break;
+        case 'DuplicatedEmail':
+          mkres(true, "This user email has already been used")
+          break;
+            
+          case 'BadEmail':
+          mkres(true, "This email is invalid, try please again")
+          break;
+            
+          case 'BadUserName':
+          mkres(true, "This username is invalid, try please again")
+          break;
+            
+               
+            case 'BadEmailProvider':
+          mkres(true, "This email provider has been blacklisted, please try another")
+          break;
+           
+          case 'DatabaseError':
+          mkres(true, "Sorry, there is something wrong with our backend currently")
+          break;
+           
+        default:
+           mkres(false, "Success! a conformation email will be sent shortly")
+          break;
+      }
+          
+        } catch (error) {
+            console.error(error);
+        }
+    });
+}
+
+</script>

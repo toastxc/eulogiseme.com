@@ -1,0 +1,41 @@
+
+# Adduce template stylesheet and new one
+style = ["config/assets/txc.css", "config/assets/lib.css"]
+# mobile support
+head = ["config/assets/mobile.html", "config/assets/favicon.html"]
+# main holds the body of the document in main there are blocks which have properties
+[main]
+
+
+
+# html element changer
+[[main.block]]
+from_str = "config/signup/mkres.html"
+style = "html"
+
+
+# main form driver
+[[main.block]]
+from_str = "config/signup/logic.html"
+style = "html"
+
+
+
+
+
+# title
+[[main.block]]
+from_str = "config/global/title.md"
+style = "md"
+
+
+# Main site info
+[[main.block]]
+from_str = "config/signup/about.md"
+style = "md"
+
+
+# footer 
+[[main.block]]
+from_str = "config/assets/footer.html"
+style = "html"

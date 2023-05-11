@@ -1,0 +1,44 @@
+<script>
+
+function mkres(bool, text) {
+    // Create a new div element
+    const doc_exists = document.getElementById('popup');
+    if (doc_exists == null ) {
+        const newElement = document.createElement('div');
+        
+
+        // Set some properties for the new element
+        newElement.classList.add('my-new-element');
+        newElement.textContent = text;
+
+        let popup_type = 'popup_success';
+        if (bool) {
+            popup_type = 'popup_error';
+        };
+
+        newElement.setAttribute('class', popup_type);
+        newElement.setAttribute('id', 'popup');
+
+        // Add the new element to the DOM
+        const container = document.getElementById('error_msg_holder');
+        container.appendChild(newElement);
+    } else {
+        const newElement = document.getElementById('popup');
+        // Set some properties for the new element
+        newElement.classList.add('my-new-element');
+        newElement.textContent = text;
+
+        let popup_type = 'popup_success';
+        if (bool) {
+            popup_type = 'popup_error';
+        };
+
+        newElement.setAttribute('class', popup_type);
+        newElement.setAttribute('id', 'popup');
+
+        // Add the new element to the DOM
+        const container = document.getElementById('error_msg_holder');
+        container.appendChild(newElement);
+    }
+    }
+</script>
