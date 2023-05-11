@@ -1,0 +1,17 @@
+[package]
+name = "libby_backend"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1.0.162", features = ["derive"] }
+tokio = { version = "1.28.1", features = ["full"] }
+rocket = { version = "0.5.0-rc.2", features = ["json"] }
+futures = "0.3.26"
+serde_json = "1.0.93"
+easymongo = "0.1.0"
+mongodb = "2.5.0"
+check-if-email-exists = "0.9.0"
+schemars = "0.8.12"
