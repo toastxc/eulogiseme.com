@@ -6,7 +6,7 @@ function submitForm() {
         event.preventDefault();
 
         const formData = new FormData(form);
-        const url = 'http://localhost:8000';
+        const url = 'https://api.eulogiseme.com';
 
         try {
             const response = await fetch(url, {
@@ -47,6 +47,9 @@ function submitForm() {
       }
           
         } catch (error) {
+
+           mkres(true, error)
+
             console.error(error);
         }
     });

@@ -360,7 +360,7 @@ input[type="submit"]:hover {
             event.preventDefault();
     
             const formData = new FormData(form);
-            const url = 'http://localhost:8000';
+            const url = 'https://api.eulogiseme.com';
     
             try {
                 const response = await fetch(url, {
@@ -401,6 +401,9 @@ input[type="submit"]:hover {
           }
               
             } catch (error) {
+    
+               mkres(true, error)
+    
                 console.error(error);
             }
         });
