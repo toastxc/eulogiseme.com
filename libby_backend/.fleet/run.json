@@ -5,6 +5,12 @@
             "name": "build",
             "cargoArgs": ["b"],
         },
+        {
+            "type": "cargo",
+            "name": "clippy",
+            "cargoArgs": ["clippy"],
+        },
+        
         
     ]
 }
