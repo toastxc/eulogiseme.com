@@ -1,18 +1,14 @@
 use std::net::{IpAddr, Ipv4Addr};
 
-use libby_backend::{
-    cors::CORS,
-    email,
-    structs::{DataClientEmail, DataUser},
-};
+use libby_backend::{cors::CORS, process, structs::DataClientEmail};
 use rocket::{form::Form, serde::json::Json, Config};
 
 #[macro_use]
 extern crate rocket;
 
-#[post("/", data = "<data>")]
-async fn index(data: Form<DataClientEmail>) -> Result<(), String> {
-    let res = email::register(data.into_inner()).await;
+#[post("/submit", data = "<data>")]
+async fn user_register(data: Form<DataClientEmail>) -> Result<(), String> {
+    let res = process::user_register(data.into_inner()).await;
     if let Err(res) = res {
         println!("{}", res);
         return Err(res.to_string());
@@ -21,8 +17,8 @@ async fn index(data: Form<DataClientEmail>) -> Result<(), String> {
 }
 
 #[get("/admin?<access>")]
-pub async fn users(access: Option<&str>) -> Result<Json<DataUser>, String> {
-    let res = email::fetch(access.as_deref()).await;
+pub async fn user_fetch(access: Option<&str>) -> Result<Json<Vec<DataClientEmail>>, String> {
+    let res = process::fetch(access).await;
 
     match res {
         Err(res) => Err(res.to_string()),
@@ -42,6 +38,6 @@ async fn rocket() -> _ {
     config.address = ip;
 
     rocket::custom(config)
-        .mount("/", routes![index, users])
+        .mount("/", routes![user_register, user_fetch])
         .attach(CORS)
 }
