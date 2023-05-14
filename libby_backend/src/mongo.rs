@@ -1,43 +1,31 @@
+use crate::{
+    result::{
+        convert::{res, res_opt},
+        error::{DataParity, Error},
+    },
+    structs::DataClientEmail,
+};
 use check_if_email_exists::{check_email, CheckEmailInput};
 use futures::TryStreamExt;
-use mongodb::{bson::doc, results::InsertOneResult, Collection, Database};
-
-use crate::structs::DataClientEmail;
+use mongodb::Collection;
+use mongodb::{bson::doc, results::InsertOneResult, Database};
 
 pub struct DB {}
 
 // Collections
 impl DB {
-    pub async fn users(&self) -> Result<Collection<DataClientEmail>, DBError> {
+    pub async fn users(&self) -> Result<Collection<DataClientEmail>, Error> {
         Ok(common().await?.collection::<DataClientEmail>("Users"))
     }
 }
 
 // utilities
 impl DB {
-    pub fn mas<T>(input: Result<T, mongodb::error::Error>) -> Result<T, DBError> {
-        match input {
-            Ok(data) => Ok(data),
-            Err(mongo_er) => Err(DBError::Mongo(mongo_er)),
-        }
-    }
-
-    pub fn sumer<T>(input: Result<Option<T>, mongodb::error::Error>) -> Result<T, DBError> {
-        let a = DB::mas(input);
-
-        match a {
-            Ok(a) => match a {
-                Some(a) => Ok(a),
-                None => Err(DBError::Parity(DataParity::NotFound)),
-            },
-            Err(error) => Err(error),
-        }
-    }
     pub fn new() -> Self {
         Self {}
     }
 
-    pub async fn email_validate(input: &str) -> Result<(), DBError> {
+    pub async fn email_validate(input: &str) -> Result<(), Error> {
         let input = input.to_string();
 
         let email_other: Vec<&str> = input.split('@').collect();
@@ -50,49 +38,49 @@ impl DB {
         match email_status.is_reachable {
             check_if_email_exists::Reachable::Safe => Ok(()),
             check_if_email_exists::Reachable::Risky => {
-                Err(DBError::Parity(DataParity::BadEmailProvider))
+                Err(Error::Parity(DataParity::BadEmailProvider))
             }
-            check_if_email_exists::Reachable::Invalid => Err(DBError::Parity(DataParity::BadEmail)),
-            check_if_email_exists::Reachable::Unknown => Err(DBError::Parity(DataParity::BadEmail)),
+            check_if_email_exists::Reachable::Invalid => Err(Error::Parity(DataParity::BadEmail)),
+            check_if_email_exists::Reachable::Unknown => Err(Error::Parity(DataParity::BadEmail)),
         }
     }
 }
 
 // users
 impl DB {
-    pub async fn user_field_exists(&self, input: &DataClientEmail) -> Result<(), DBError> {
-        let user = DB::mas(
-            self.users()
-                .await?
-                .find_one(doc!("name": input.name.clone()), None)
-                .await,
-        )?
-        .is_some();
-        let email = DB::mas(
-            self.users()
-                .await?
-                .find_one(doc!("email": input.email.clone()), None)
-                .await,
-        )?
-        .is_some();
+    pub async fn user_field_exists(&self, input: &DataClientEmail) -> Result<(), Error> {
+        let user = self
+            .users()
+            .await?
+            .find_one(doc!("name": input.name.clone()), None)
+            .await
+            .res()?
+            .is_some();
+
+        let email = self
+            .users()
+            .await?
+            .find_one(doc!("email": input.email.clone()), None)
+            .await
+            .res()?
+            .is_some();
 
         match (user, email) {
-            (true, _) => Err(DBError::Parity(DataParity::DuplicatedUser)),
-            (_, true) => Err(DBError::Parity(DataParity::DuplicatedEmail)),
+            (true, _) => Err(Error::Parity(DataParity::DuplicatedUser)),
+            (_, true) => Err(Error::Parity(DataParity::DuplicatedEmail)),
             _ => Ok(()),
         }
     }
 
-    pub async fn user_fetch(&self, user_id: &str) -> Result<DataClientEmail, DBError> {
-        DB::sumer(
-            self.users()
-                .await?
-                .find_one(doc!("name": &user_id), None)
-                .await,
-        )
+    pub async fn user_fetch(&self, user_id: &str) -> Result<DataClientEmail, Error> {
+        self.users()
+            .await?
+            .find_one(doc!("name": &user_id), None)
+            .await
+            .opt()
     }
 
-    pub async fn user_insert(&self, input: DataClientEmail) -> Result<InsertOneResult, DBError> {
+    pub async fn user_insert(&self, input: DataClientEmail) -> Result<InsertOneResult, Error> {
         // prerun check, validating email and username
         let validate = tokio::join!(
             self.user_field_exists(&input),
@@ -103,59 +91,33 @@ impl DB {
         validate.1?;
 
         // if all is valid, insert
-        DB::mas(self.users().await?.insert_one(input, None).await)
+
+        self.users().await?.insert_one(input, None).await.res()
     }
 
-    pub async fn user_vec(&self) -> Result<Vec<DataClientEmail>, DBError> {
-        Ok(DB::mas(
-            DB::mas(self.users().await?.find(None, None).await)?
-                .try_collect()
-                .await,
-        )?)
+    pub async fn user_vec(&self) -> Result<Vec<DataClientEmail>, Error> {
+        self.users()
+            .await?
+            .find(None, None)
+            .await
+            .res()?
+            .try_collect()
+            .await
+            .res()
     }
 }
-async fn common() -> Result<Database, DBError> {
-    DB::mas(
-        easymongo::mongo::Mongo::new()
-            .username("username")
-            .password("password")
-            .database("test")
-            .db_generate()
-            .await,
-    )
+async fn common() -> Result<Database, Error> {
+    easymongo::mongo::Mongo::new()
+        .username("username")
+        .password("password")
+        .database("test")
+        .db_generate()
+        .await
+        .res()
 }
 
-pub enum DBError {
-    Mongo(mongodb::error::Error),
-    Parity(DataParity),
-}
-
-use std::fmt;
-
-impl fmt::Display for DBError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let data = match self {
-            DBError::Mongo(_) => String::from("DatabaseError"),
-            DBError::Parity(ptype) => format!("{:#?}", ptype),
-        };
-
-        write!(f, "{}", data)
+impl Default for DB {
+    fn default() -> Self {
+        Self::new()
     }
-}
-#[derive(Debug)]
-pub enum DataParity {
-    // duplicated fields
-    // these fields have been used before
-    DuplicatedUser,
-    DuplicatedEmail,
-    // bad fields
-    // they use invalid characters, malformed emails, etc
-    BadEmail,
-    BadUserName,
-    // illegal fields
-    // these are not allowed
-    BadEmailProvider,
-    // they use invalid characters, malformed emails, etc
-    NotFound,
-    AccessDenied,
 }
