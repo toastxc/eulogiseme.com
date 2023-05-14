@@ -1,9 +1,12 @@
+use rocket::http::Status;
+
 use crate::{
-    mongo::{DBError, DB},
-    structs::{Access, DataClientEmail, DataUser},
+    mongo::DB,
+    result::error::Error,
+    structs::{Access, DataClientEmail},
 };
 
-pub async fn register(data: DataClientEmail) -> Result<(), DBError> {
+pub async fn user_register(data: DataClientEmail) -> Result<(), Error> {
     println!("[INFO] Processing email request");
 
     let db = DB::new();
@@ -15,21 +18,24 @@ pub async fn register(data: DataClientEmail) -> Result<(), DBError> {
     Ok(())
 }
 
-pub async fn fetch(access: Option<&str>) -> Result<DataUser, DBError> {
+pub async fn fetch(access: Option<&str>) -> Result<Vec<DataClientEmail>, Error> {
     println!("{:#?}", access);
 
     let token = match access {
-        None => return Err(DBError::Parity(crate::mongo::DataParity::AccessDenied)),
+        None => return Err(Error::Status(Status::NotFound)),
         Some(token) => token,
     };
 
     let json = String::from_utf8(std::fs::read("./conf/access.json").unwrap()).unwrap();
 
     let data: Access = serde_json::from_str(&json).unwrap();
-
     if !data.authorised(token) {
-        return Err(DBError::Parity(crate::mongo::DataParity::AccessDenied));
+        return Err(Error::Status(Status::Forbidden));
     };
 
-    Ok(DataUser::from_vec(DB::new().user_vec().await?))
+    let newdata = DB::new().user_vec().await;
+
+    println!("{:#?}", newdata);
+
+    newdata
 }
